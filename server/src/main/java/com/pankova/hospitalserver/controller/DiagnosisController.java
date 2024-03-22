@@ -8,13 +8,11 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.pankova.hospitalserver.entity.Diagnosis;
 import com.pankova.hospitalserver.entity.People;
-import com.pankova.hospitalserver.exception.DiagnoseBusyException;
-import com.pankova.hospitalserver.exception.DiagnoseNotFoundException;
-import com.pankova.hospitalserver.exception.DuplicateNameException;
-import com.pankova.hospitalserver.exception.WardNotFoundException;
 import com.pankova.hospitalserver.service.DiagnosisService;
 
 import java.util.List;
+
+import javax.persistence.EntityNotFoundException;
 
 
 @RestController
@@ -33,7 +31,7 @@ public class DiagnosisController {
         try {
             List<People> list = diagnosisService.getPeopleByDiagnoseName(name);
             return new ResponseEntity<>(list, HttpStatus.OK);
-        } catch (DiagnoseNotFoundException exception) {
+        } catch (EntityNotFoundException exception) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, exception.getMessage());
         }
     }
@@ -43,7 +41,7 @@ public class DiagnosisController {
         try {
             Diagnosis diagnose = diagnosisService.findDiagnoseById(id);
             return new ResponseEntity<>(diagnose, HttpStatus.OK);
-        } catch (DiagnoseNotFoundException exception) {
+        } catch (EntityNotFoundException exception) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, exception.getMessage());
         }
     }
@@ -53,7 +51,7 @@ public class DiagnosisController {
         try {
             List<Diagnosis> list = diagnosisService.getDiagnosisByWardName(name);
             return new ResponseEntity<>(list, HttpStatus.OK);
-        } catch (WardNotFoundException exception) {
+        } catch (EntityNotFoundException exception) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, exception.getMessage());
         }
     }
@@ -62,8 +60,10 @@ public class DiagnosisController {
     public Diagnosis addDiagnose(@RequestBody Diagnosis diagnose) {
         try {
             return diagnosisService.addDiagnose(diagnose);
-        } catch (DuplicateNameException | IllegalArgumentException exception) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, exception.getMessage());
+        } catch (IllegalArgumentException exception) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, exception.getMessage());
+        } catch (EntityNotFoundException exception) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, exception.getMessage());
         }
     }
 
@@ -71,9 +71,9 @@ public class DiagnosisController {
     public void deleteDiagnose(@PathVariable("id") Long id) {
         try {
             diagnosisService.deleteDiagnoseById(id);
-        } catch (DiagnoseNotFoundException exception) {
+        } catch (EntityNotFoundException exception) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, exception.getMessage());
-        } catch (DiagnoseBusyException exception) {
+        } catch (RuntimeException exception) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, exception.getMessage());
         }
     }
@@ -82,9 +82,11 @@ public class DiagnosisController {
     public void updateDiagnoseName(@PathVariable("id") Long id, @RequestParam String newName) {
         try {
             diagnosisService.updateDiagnoseName(id, newName);
-        } catch (DiagnoseNotFoundException exception) {
+        } catch (IllegalArgumentException exception) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, exception.getMessage());
+        } catch (EntityNotFoundException exception) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, exception.getMessage());
-        } catch (IllegalArgumentException | DuplicateNameException exception) {
+        } catch (RuntimeException exception) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, exception.getMessage());
         }
     }

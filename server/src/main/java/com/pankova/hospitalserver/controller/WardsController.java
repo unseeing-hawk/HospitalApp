@@ -8,13 +8,12 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.pankova.hospitalserver.entity.People;
 import com.pankova.hospitalserver.entity.Wards;
-import com.pankova.hospitalserver.exception.DuplicateNameException;
-import com.pankova.hospitalserver.exception.PeopleNotFoundException;
-import com.pankova.hospitalserver.exception.WardBusyException;
-import com.pankova.hospitalserver.exception.WardNotFoundException;
 import com.pankova.hospitalserver.service.WardsService;
 
 import java.util.List;
+
+import javax.persistence.EntityNotFoundException;
+
 
 @RestController
 @RequestMapping("/wards")
@@ -32,7 +31,7 @@ public class WardsController {
         try {
             Wards ward = wardsService.findWardById(id);
             return new ResponseEntity<>(ward, HttpStatus.OK);
-        } catch (WardNotFoundException exception) {
+        } catch (EntityNotFoundException exception) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, exception.getMessage());
         }
     }
@@ -42,7 +41,7 @@ public class WardsController {
         try {
             List<People> list = wardsService.getPeopleByWardName(name);
             return new ResponseEntity<>(list, HttpStatus.OK);
-        } catch (WardNotFoundException exception) {
+        } catch (EntityNotFoundException exception) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, exception.getMessage());
         }
     }
@@ -51,7 +50,7 @@ public class WardsController {
     public Wards addWard(@RequestBody Wards ward) {
         try {
             return wardsService.addWard(ward);
-        } catch (DuplicateNameException exception) {
+        } catch (RuntimeException exception) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, exception.getMessage());
         }
     }
@@ -60,9 +59,9 @@ public class WardsController {
     public void deleteWardById(@PathVariable("id") long id) {
         try {
             wardsService.deleteWardByID(id);
-        } catch (WardNotFoundException exception) {
+        } catch (EntityNotFoundException exception) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, exception.getMessage());
-        } catch (WardBusyException exception) {
+        } catch (RuntimeException exception) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, exception.getMessage());
         }
     }
@@ -71,10 +70,10 @@ public class WardsController {
     public void updateWardName(@PathVariable("id") Long id, @RequestParam String newName) {
         try {
             wardsService.updateWardName(id, newName);
-        } catch (IllegalArgumentException | DuplicateNameException exception) {
+        } catch (IllegalArgumentException | EntityNotFoundException exception) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, exception.getMessage());
+        } catch (RuntimeException exception) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, exception.getMessage());
-        } catch (WardNotFoundException exception) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, exception.getMessage());
         }
     }
 
@@ -83,9 +82,11 @@ public class WardsController {
         try {
             wardsService.updateWardMaxCount(id, newMaxCount);
         } catch (IllegalArgumentException exception) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, exception.getMessage());
-        } catch (WardNotFoundException exception) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, exception.getMessage());
+        } catch (EntityNotFoundException exception) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, exception.getMessage());
+        } catch (RuntimeException exception) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, exception.getMessage());
         }
     }
 

@@ -10,6 +10,8 @@ import com.pankova.hospitalserver.entity.User;
 import com.pankova.hospitalserver.repository.UserRepository;
 
 import java.util.Optional;
+import javax.persistence.EntityNotFoundException;
+
 
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
@@ -21,7 +23,7 @@ public class CustomUserDetailsService implements UserDetailsService {
         if (userOptional.isPresent()) {
             return userOptional.get();
         }
-        throw new UsernameNotFoundException("User not found by login");
+        throw new EntityNotFoundException("User not found by login");
     }
 
     @Autowired

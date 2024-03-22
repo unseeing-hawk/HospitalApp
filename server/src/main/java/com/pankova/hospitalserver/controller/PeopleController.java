@@ -7,13 +7,11 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.pankova.hospitalserver.entity.People;
-import com.pankova.hospitalserver.exception.DiagnoseNotFoundException;
-import com.pankova.hospitalserver.exception.PeopleNotFoundException;
-import com.pankova.hospitalserver.exception.WardNotFoundException;
-import com.pankova.hospitalserver.exception.WardOverflowException;
 import com.pankova.hospitalserver.service.PeopleService;
 
 import java.util.List;
+import javax.persistence.EntityNotFoundException;
+
 
 @RestController
 @RequestMapping("/people")
@@ -31,7 +29,7 @@ public class PeopleController {
         try {
             People people = peopleService.findPeopleByID(id);
             return new ResponseEntity<>(people, HttpStatus.OK);
-        } catch (PeopleNotFoundException exception) {
+        } catch (EntityNotFoundException exception) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, exception.getMessage());
         }
     }
@@ -42,7 +40,7 @@ public class PeopleController {
         try {
             List<People> list = peopleService.findPeopleByWardNameAndDiagnoseName(wardName, diagnoseName);
             return new ResponseEntity<>(list, HttpStatus.OK);
-        } catch (WardNotFoundException | DiagnoseNotFoundException exception) {
+        } catch (EntityNotFoundException exception) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, exception.getMessage());
         }
     }
@@ -53,7 +51,7 @@ public class PeopleController {
             List<People> list = peopleService.findPeopleByFullName(firstName, lastName, patherName);
             return new ResponseEntity<>(list, HttpStatus.OK);
         } catch (IllegalArgumentException exception) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, exception.getMessage());
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, exception.getMessage());
         }
     }
 
@@ -61,9 +59,9 @@ public class PeopleController {
     public People addPeople(@RequestBody People people) {
         try {
             return peopleService.addPeople(people);
-        } catch (DiagnoseNotFoundException | WardNotFoundException exception) {
+        } catch (EntityNotFoundException exception) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, exception.getMessage());
-        } catch (WardOverflowException exception) {
+        } catch (RuntimeException exception) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, exception.getMessage());
         }
     }
@@ -72,7 +70,7 @@ public class PeopleController {
     public void deletePeople(@PathVariable("id") Long id) {
         try {
             peopleService.deletePeopleByID(id);
-        } catch (PeopleNotFoundException exception) {
+        } catch (EntityNotFoundException exception) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, exception.getMessage());
         }
     }
@@ -81,9 +79,9 @@ public class PeopleController {
     public void updatePeopleWard(@PathVariable("id") Long id, @RequestParam Long wardId) {
         try {
             peopleService.updatePeopleWard(id, wardId);
-        } catch (WardNotFoundException | PeopleNotFoundException exception) {
+        } catch (EntityNotFoundException exception) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, exception.getMessage());
-        } catch (WardOverflowException exception) {
+        } catch (RuntimeException exception) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, exception.getMessage());
         }
     }
@@ -102,8 +100,8 @@ public class PeopleController {
         try {
             peopleService.updatePeopleFullName(id, firstName, lastName, patherName);
         } catch (IllegalArgumentException exception) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, exception.getMessage());
-        } catch (PeopleNotFoundException exception) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, exception.getMessage());
+        } catch (EntityNotFoundException exception) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, exception.getMessage());
         }
     }
