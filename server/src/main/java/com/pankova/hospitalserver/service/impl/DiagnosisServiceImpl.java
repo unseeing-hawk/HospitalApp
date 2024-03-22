@@ -5,7 +5,6 @@ import org.springframework.stereotype.Service;
 
 import com.pankova.hospitalserver.entity.Diagnosis;
 import com.pankova.hospitalserver.entity.People;
-import com.pankova.hospitalserver.entity.Wards;
 import com.pankova.hospitalserver.exception.DiagnoseBusyException;
 import com.pankova.hospitalserver.exception.DiagnoseNotFoundException;
 import com.pankova.hospitalserver.exception.DuplicateNameException;
